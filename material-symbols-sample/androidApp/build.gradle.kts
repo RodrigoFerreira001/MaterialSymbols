@@ -14,7 +14,7 @@ kotlin {
     }
 
     dependencies {
-        implementation(projects.sample.shared)
+        implementation(projects.materialSymbolsSample.shared)
         implementation(libs.androidx.activity.compose)
         implementation(libs.compose.ui.tooling.preview)
     }
