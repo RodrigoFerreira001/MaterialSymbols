@@ -1,3 +1,7 @@
+rootProject.name = "MaterialSymbolsWorkspace"
+
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
 pluginManagement {
     includeBuild("build-logic/material-symbols-codegen")
 
@@ -15,11 +19,10 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "MaterialSymbols"
 include(":material-symbols")
 
 // Sample
-include(":material-symbols-sample:shared")
-include(":material-symbols-sample:androidApp")
-include(":material-symbols-sample:desktopApp")
-include(":material-symbols-sample:webApp")
+include(":sample:shared")
+include(":sample:androidApp")
+include(":sample:desktopApp")
+include(":sample:webApp")

@@ -16,7 +16,7 @@ kotlin {
 
     sourceSets {
         webMain.dependencies {
-            implementation(project(":material-symbols-sample:shared"))
+            implementation(projects.sample.shared)
             implementation(libs.compose.ui)
         }
     }

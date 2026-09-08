@@ -8,7 +8,7 @@ plugins {
 
 kotlin {
     dependencies {
-        implementation(project(":material-symbols-sample:shared"))
+        implementation(projects.sample.shared)
         implementation(compose.desktop.currentOs)
         implementation(libs.kotlinx.coroutines.swing)
     }
