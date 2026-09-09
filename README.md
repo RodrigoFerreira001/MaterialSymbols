@@ -4,7 +4,7 @@
 
 <h1 align="center">Material Symbols for Compose Multiplatform</h1>
 
-<p align="center">A single <code>MaterialSymbol</code> composable over Google's 3 official variable icon fonts (Outlined, Rounded, Sharp) — with a build-time-generated, typo-proof catalog of every valid icon name, and live control over weight, grade, optical size and fill.</p>
+<p align="center">Google's Material Symbols, packaged as a Compose library. Drop in any of the 3905 icons by name — no downloading SVGs one by one, no per-platform asset folders.</p>
 
 <p align="center">
   <a href="https://search.maven.org/search?q=g:dev.catbit+a:material-symbols"><img src="https://img.shields.io/maven-central/v/dev.catbit/material-symbols?label=Maven%20Central&color=2A6DB2" alt="Maven Central"></a>
@@ -26,7 +26,7 @@
 
 ## The same app, everywhere
 
-One `MaterialSymbol` composable, one shared MVI ViewModel — Android, Desktop and Web all rendering pixel-identical UI, light and dark, from the exact same Kotlin. No platform-specific screens to keep in sync.
+Android, Desktop and Web, running the exact same Kotlin — light and dark, side by side.
 
 <table>
 <tr>
