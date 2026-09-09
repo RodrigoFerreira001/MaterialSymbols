@@ -4,7 +4,6 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.LocalContentColor
-import androidx.compose.material3.LocalTextStyle
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Modifier
@@ -21,6 +20,10 @@ import androidx.compose.ui.tooling.preview.PreviewParameterProvider
 import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+
+/** [MaterialSymbol]'s default size when none is given — Material's standard icon size, matching
+ * [androidx.compose.material3.Icon]'s own `SmallIconButtonTokens.IconSize` default. */
+private val DefaultMaterialSymbolSize = 24.dp
 
 /**
  * Renders a single [Material Symbol](https://fonts.google.com/icons) glyph using the variable
@@ -56,9 +59,10 @@ import androidx.compose.ui.unit.sp
  * or Sharp. Defaults to [MaterialSymbolStyle.OUTLINED].
  * @param filled whether to render the filled variant of the glyph rather than its outline weight.
  * Defaults to `false`.
- * @param size the glyph's size. When `null`, falls back to the ambient
- * [LocalTextStyle][androidx.compose.material3.LocalTextStyle]'s font size, so the icon scales
- * naturally alongside surrounding text.
+ * @param size the glyph's size. When `null`, falls back to [DefaultMaterialSymbolSize] (24dp) —
+ * Material's standard icon size, matching [androidx.compose.material3.Icon]'s own default — rather
+ * than the ambient [LocalTextStyle][androidx.compose.material3.LocalTextStyle], so this renders at
+ * the expected size inside `Button`/`IconButton`/etc. without needing to be sized manually.
  * @param tint the glyph's color. When `null`, falls back to
  * [LocalContentColor][androidx.compose.material3.LocalContentColor].
  */
@@ -75,8 +79,7 @@ fun MaterialSymbol(
     val materialSymbolFonts = LocalMaterialSymbolFonts.current
     val fontFamily = materialSymbolFonts.resolve(style, filled)
 
-    val fontSize = size?.let { with(LocalDensity.current) { it.toSp() } }
-        ?: LocalTextStyle.current.fontSize
+    val fontSize = with(LocalDensity.current) { (size ?: DefaultMaterialSymbolSize).toSp() }
     val tint = tint ?: LocalContentColor.current
 
     Text(
@@ -86,7 +89,6 @@ fun MaterialSymbol(
                 this.contentDescription = contentDescription
             }
         },
-        maxLines = 1,
         text = iconName,
         fontFamily = fontFamily,
         fontSize = fontSize,

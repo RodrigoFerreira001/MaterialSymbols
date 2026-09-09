@@ -70,10 +70,11 @@ data class MaterialSymbolFontsConfig(
 )
 
 /**
- * Builds (and memoizes) the 6 [MaterialSymbolFonts] variants from [config]'s variable-font axis
- * settings — called once by [MaterialSymbolsRenderingScope] to populate
- * [LocalMaterialSymbolFonts]. The returned [MaterialSymbolFonts] is only rebuilt when [config]
- * actually changes value, not on every recomposition.
+ * Builds the 6 [MaterialSymbolFonts] variants from [config]'s variable-font axis settings — called
+ * once by [MaterialSymbolsRenderingScope] to populate [LocalMaterialSymbolFonts]. The
+ * [FontVariation.Settings] themselves are memoized on [config] (cheap, purely synchronous); actually
+ * loading the fonts into [FontFamily]s is delegated to [rememberMaterialSymbolFontFamilies], which
+ * differs per platform — see its docs for why.
  *
  * @param config the axis values to apply.
  * @throws IllegalArgumentException if any of [config]'s values falls outside its documented range.
@@ -112,6 +113,37 @@ internal fun rememberMaterialSymbolFonts(
         settings to settingsFilled
     }
 
+    return rememberMaterialSymbolFontFamilies(settings, settingsFilled)
+}
+
+/**
+ * Platform-specific loading of the 6 [MaterialSymbolFonts] variants for [settings]/[settingsFilled].
+ *
+ * On JVM/Android/iOS this just calls [Font] directly (see [rememberDefaultMaterialSymbolFontFamilies])
+ * — those load synchronously from the bundled resources, so the very first composition already has
+ * the final result. On web targets, [Font] loads asynchronously over the network instead; the actual
+ * implementation there uses Compose's `preloadFont` so the returned [MaterialSymbolFonts] only
+ * reflects a fully-loaded font, avoiding a flash of un-styled/fallback text (FOUT) on first paint.
+ *
+ * Whatever the platform, this must **not** be wrapped in an outer `remember` keyed on something that
+ * stays stable across the async load (like [settings] itself) — that would freeze the result at
+ * whatever the first composition produced and never observe the font finishing loading.
+ */
+@Composable
+internal expect fun rememberMaterialSymbolFontFamilies(
+    settings: FontVariation.Settings,
+    settingsFilled: FontVariation.Settings
+): MaterialSymbolFonts
+
+/** Shared by every [rememberMaterialSymbolFontFamilies] `actual` that loads synchronously (i.e.
+ * every platform except web) — [Font] already returns the final result on the first composition
+ * there, so no extra async-awareness is needed. */
+@Composable
+internal fun rememberDefaultMaterialSymbolFontFamilies(
+    settings: FontVariation.Settings,
+    settingsFilled: FontVariation.Settings
+): MaterialSymbolFonts {
+
     val outlined = Font(resource = Res.font.materialSymbolsOutlined, variationSettings = settings)
     val outlinedFilled = Font(resource = Res.font.materialSymbolsOutlined, variationSettings = settingsFilled)
     val rounded = Font(resource = Res.font.materialSymbolsRounded, variationSettings = settings)
@@ -119,14 +151,12 @@ internal fun rememberMaterialSymbolFonts(
     val sharp = Font(resource = Res.font.materialSymbolsSharp, variationSettings = settings)
     val sharpFilled = Font(resource = Res.font.materialSymbolsSharp, variationSettings = settingsFilled)
 
-    return remember(settings, settingsFilled) {
-        MaterialSymbolFonts(
-            outlined = FontFamily(outlined),
-            outlinedFilled = FontFamily(outlinedFilled),
-            rounded = FontFamily(rounded),
-            roundedFilled = FontFamily(roundedFilled),
-            sharp = FontFamily(sharp),
-            sharpFilled = FontFamily(sharpFilled)
-        )
-    }
+    return MaterialSymbolFonts(
+        outlined = FontFamily(outlined),
+        outlinedFilled = FontFamily(outlinedFilled),
+        rounded = FontFamily(rounded),
+        roundedFilled = FontFamily(roundedFilled),
+        sharp = FontFamily(sharp),
+        sharpFilled = FontFamily(sharpFilled)
+    )
 }
