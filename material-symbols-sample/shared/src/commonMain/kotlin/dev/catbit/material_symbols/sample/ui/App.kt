@@ -17,7 +17,8 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.systemBarsPadding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.GridItemSpan
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
@@ -30,6 +31,7 @@ import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.LocalContentColor
+import androidx.compose.material3.adaptive.currentWindowAdaptiveInfoV2
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedButton
 import androidx.compose.material3.SplitButtonDefaults
@@ -55,6 +57,7 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
+import androidx.window.core.layout.WindowSizeClass.Companion.WIDTH_DP_MEDIUM_LOWER_BOUND
 import androidx.lifecycle.viewmodel.compose.viewModel
 import dev.catbit.material_symbols.MaterialSymbol
 import dev.catbit.material_symbols.MaterialSymbolFontsConfig
@@ -154,25 +157,29 @@ private fun MainContent(
         Column(
             modifier = Modifier
                 .padding(top = 24.dp)
+                .systemBarsPadding()
                 .fillMaxSize()
         ) {
-            Row(
-                modifier = Modifier
-                    .padding(horizontal = 24.dp)
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.Center,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
+            val isCompact = !currentWindowAdaptiveInfoV2()
+                .windowSizeClass
+                .isWidthAtLeastBreakpoint(WIDTH_DP_MEDIUM_LOWER_BOUND)
 
-                Text(
-                    modifier = Modifier.padding(end = 16.dp),
-                    text = "MaterialSymbols",
-                    color = MaterialTheme.colorScheme.onSurface,
-                    style = MaterialTheme.typography.bodyLarge
-                )
+            val darkModeButton: @Composable () -> Unit = {
+                IconButton(
+                    onClick = {
+                        onEvent(Event.OnToggleDarkMode)
+                    }
+                ) {
+                    MaterialSymbol(
+                        iconName = if (uiState.darkMode) MaterialSymbols.LIGHT_MODE else MaterialSymbols.DARK_MODE,
+                        contentDescription = "Light/Dark mode switch"
+                    )
+                }
+            }
 
+            val searchBar: @Composable (Modifier) -> Unit = { modifier ->
                 SearchBar(
-                    modifier = Modifier.weight(1f),
+                    modifier = modifier,
                     query = uiState.searchQuery,
                     placeholder = {
                         Text("Search for a symbol")
@@ -188,17 +195,51 @@ private fun MainContent(
                         )
                     }
                 )
+            }
 
-                IconButton(
-                    modifier = Modifier.padding(start = 16.dp),
-                    onClick = {
-                        onEvent(Event.OnToggleDarkMode)
-                    }
+            if (isCompact) {
+                // Compact width (phones): search bar drops below the title row.
+                Column(
+                    modifier = Modifier
+                        .padding(horizontal = 24.dp)
+                        .fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    MaterialSymbol(
-                        iconName = if (uiState.darkMode) MaterialSymbols.LIGHT_MODE else MaterialSymbols.DARK_MODE,
-                        contentDescription = "Light/Dark mode switch"
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "MaterialSymbols",
+                            color = MaterialTheme.colorScheme.onSurface,
+                            style = MaterialTheme.typography.bodyLarge
+                        )
+                        darkModeButton()
+                    }
+
+                    searchBar(Modifier.fillMaxWidth())
+                }
+            } else {
+                Row(
+                    modifier = Modifier
+                        .padding(horizontal = 24.dp)
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        modifier = Modifier.padding(end = 16.dp),
+                        text = "MaterialSymbols",
+                        color = MaterialTheme.colorScheme.onSurface,
+                        style = MaterialTheme.typography.bodyLarge
                     )
+
+                    searchBar(Modifier.weight(1f))
+
+                    Box(modifier = Modifier.padding(start = 16.dp)) {
+                        darkModeButton()
+                    }
                 }
             }
 
@@ -291,63 +332,69 @@ private fun Filters(
     Column(
         modifier = Modifier
             .fillMaxHeight()
-            .width(400.dp)
+            .widthIn(max = 400.dp)
+            .fillMaxWidth()
             .shadow(
                 elevation = 8.dp,
                 shape = shape,
                 clip = false
             )
-            .verticalScroll(rememberScrollState())
             .clip(shape)
             .background(MaterialTheme.colorScheme.surfaceContainer)
     ) {
-        Row(
-            modifier = Modifier
-                .padding(
-                    top = 8.dp,
-                    end = 8.dp
-                )
-                .fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(
-                space = 8.dp,
-                alignment = Alignment.End
-            ),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-
-            TextButton(
-                onClick = {
-                    onEvent(Event.OnResetAllFilters)
-                }
-            ) {
-                MaterialSymbol(
-                    modifier = Modifier.padding(end = 8.dp),
-                    iconName = MaterialSymbols.REFRESH,
-                    size = 24.dp,
-                    contentDescription = "Reset filters",
-                )
-                Text("Reset all")
-            }
-
-            IconButton(
-                onClick = {
-                    onEvent(Event.OnHideFiltersClicked)
-                }
-            ) {
-                MaterialSymbol(
-                    iconName = MaterialSymbols.CLOSE,
-                    contentDescription = "Close icon",
-                    tint = MaterialTheme.colorScheme.onSurface
-                )
-            }
-        }
-
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .padding(horizontal = 24.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .fillMaxSize()
+                .systemBarsPadding()
+                .verticalScroll(rememberScrollState())
         ) {
+            Row(
+                modifier = Modifier
+                    .padding(
+                        top = 8.dp,
+                        end = 8.dp
+                    )
+                    .fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(
+                    space = 8.dp,
+                    alignment = Alignment.End
+                ),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+
+                TextButton(
+                    onClick = {
+                        onEvent(Event.OnResetAllFilters)
+                    }
+                ) {
+                    MaterialSymbol(
+                        modifier = Modifier.padding(end = 8.dp),
+                        iconName = MaterialSymbols.REFRESH,
+                        size = 24.dp,
+                        contentDescription = "Reset filters",
+                    )
+                    Text("Reset all")
+                }
+
+                IconButton(
+                    onClick = {
+                        onEvent(Event.OnHideFiltersClicked)
+                    }
+                ) {
+                    MaterialSymbol(
+                        iconName = MaterialSymbols.CLOSE,
+                        contentDescription = "Close icon",
+                        tint = MaterialTheme.colorScheme.onSurface
+                    )
+                }
+            }
+
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 24.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -433,6 +480,7 @@ private fun Filters(
                 onCategoryClicked = { onEvent(Event.OnCategoryClicked(it)) }
             )
         }
+        }
     }
 }
 
@@ -443,55 +491,61 @@ private fun Preview(
 ) {
     withNotNull(uiState.preview) {
         val shape = RoundedCornerShape(
-            topEnd = 16.dp,
-            bottomEnd = 16.dp
+            topStart = 16.dp,
+            bottomStart = 16.dp
         )
 
         Column(
             modifier = Modifier
                 .fillMaxHeight()
-                .width(400.dp)
+                .widthIn(max = 400.dp)
+                .fillMaxWidth()
                 .shadow(
                     elevation = 8.dp,
                     shape = shape,
                     clip = false
                 )
-                .verticalScroll(rememberScrollState())
                 .clip(shape)
                 .background(MaterialTheme.colorScheme.surfaceContainer)
         ) {
-            Row(
-                modifier = Modifier
-                    .padding(
-                        top = 8.dp,
-                        end = 8.dp
-                    )
-                    .fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(
-                    space = 8.dp,
-                    alignment = Alignment.End
-                ),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                IconButton(
-                    onClick = {
-                        onEvent(Event.OnHidePreviewClicked)
-                    }
-                ) {
-                    MaterialSymbol(
-                        iconName = MaterialSymbols.CLOSE,
-                        contentDescription = "Close icon",
-                        tint = MaterialTheme.colorScheme.onSurface
-                    )
-                }
-            }
-
             Column(
                 modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                    .fillMaxSize()
+                    .systemBarsPadding()
+                    .verticalScroll(rememberScrollState())
             ) {
+                Row(
+                    modifier = Modifier
+                        .padding(
+                            top = 8.dp,
+                            end = 8.dp
+                        )
+                        .fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(
+                        space = 8.dp,
+                        alignment = Alignment.End
+                    ),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    IconButton(
+                        onClick = {
+                            onEvent(Event.OnHidePreviewClicked)
+                        }
+                    ) {
+                        MaterialSymbol(
+                            iconName = MaterialSymbols.CLOSE,
+                            contentDescription = "Close icon",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                }
+
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 24.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -540,6 +594,8 @@ private fun Preview(
                             MaterialSymbol(
                                 iconName = symbol,
                                 contentDescription = "Material symbol preview",
+                                filled = uiState.filters.filled,
+                                style = uiState.filters.style,
                                 size = size.dp,
                                 tint = colorHex.toColorOrNull()
                             )
@@ -560,7 +616,8 @@ private fun Preview(
                         ) {
                             MaterialSymbol(
                                 iconName = MaterialSymbols.CONTENT_COPY,
-                                contentDescription = "Copy the symbol name to clipboard"
+                                contentDescription = "Copy the symbol name to clipboard",
+                                tint = MaterialTheme.colorScheme.onSurface
                             )
                         }
                     }
@@ -689,6 +746,7 @@ private fun Preview(
                 SymbolTags(
                     tags = uiState.symbols.first { it.name == symbol }.tags
                 )
+            }
             }
         }
     }

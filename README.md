@@ -24,6 +24,63 @@
 
 ---
 
+## The same app, everywhere
+
+One `MaterialSymbol` composable, one shared MVI ViewModel — Android, Desktop and Web all rendering pixel-identical UI, light and dark, from the exact same Kotlin. No platform-specific screens to keep in sync.
+
+<table>
+<tr>
+  <th></th>
+  <th>Light</th>
+  <th>Dark</th>
+</tr>
+<tr>
+  <td><b>Desktop</b><br /><sub>JVM, native window</sub></td>
+  <td><img src="docs/images/desktop-grid-light.png" width="380" alt="Desktop, light theme" /></td>
+  <td><img src="docs/images/desktop-grid-dark.png" width="380" alt="Desktop, dark theme" /></td>
+</tr>
+<tr>
+  <td><b>Web</b><br /><sub>wasmJs, in the browser</sub></td>
+  <td><img src="docs/images/web-grid-light.png" width="380" alt="Web, light theme" /></td>
+  <td><img src="docs/images/web-grid-dark.png" width="380" alt="Web, dark theme" /></td>
+</tr>
+<tr>
+  <td><b>Android</b></td>
+  <td><img src="docs/images/mobile-grid-light.jpeg" width="200" alt="Android, light theme" /></td>
+  <td><img src="docs/images/mobile-grid-dark.jpeg" width="200" alt="Android, dark theme" /></td>
+</tr>
+</table>
+
+<details>
+<summary><b>More screens</b> — the filter panel and the per-icon preview, on every platform</summary>
+<br />
+
+**Filters** — fill, weight, grade, optical size, style and category, all live:
+
+<table>
+<tr>
+  <td><img src="docs/images/desktop-filters-light.png" width="360" alt="Desktop filters, light theme" /></td>
+  <td><img src="docs/images/desktop-filters-dark.png" width="360" alt="Desktop filters, dark theme" /></td>
+  <td><img src="docs/images/mobile-filters-light.jpeg" width="170" alt="Android filters, light theme" /></td>
+  <td><img src="docs/images/mobile-filters-dark.jpeg" width="170" alt="Android filters, dark theme" /></td>
+</tr>
+</table>
+
+**Preview** — size, a hex-validated color field and a Google-Fonts-style color picker:
+
+<table>
+<tr>
+  <td><img src="docs/images/desktop-preview-light.png" width="360" alt="Desktop preview, light theme" /></td>
+  <td><img src="docs/images/desktop-preview-dark.png" width="360" alt="Desktop preview, dark theme" /></td>
+  <td><img src="docs/images/mobile-preview-light.jpeg" width="170" alt="Android preview, light theme" /></td>
+  <td><img src="docs/images/mobile-preview-dark.jpeg" width="170" alt="Android preview, dark theme" /></td>
+</tr>
+</table>
+
+Web has the same two panels — [see them live](https://rodrigoferreira001.github.io/MaterialSymbols/) instead of a screenshot.
+
+</details>
+
 ## The problem
 
 Google's [Material Symbols](https://fonts.google.com/icons) aren't a fixed set of vector drawables — they're **variable fonts**. A single glyph carries 4 tunable axes (fill, weight, grade, optical size), and Google ships 3 separate font families (Outlined, Rounded, Sharp) on top of that. Wiring this up by hand in Compose means juggling `FontFamily`s, `FontVariation.Settings`, raw icon-name strings that silently render blank on a typo, and — on web specifically — a font that loads *asynchronously*, which without care means a flash of unstyled text before the glyph appears.
@@ -54,8 +111,8 @@ Weight, grade and optical size are real OpenType variable-font axes (`wght`, `GR
 MaterialSymbolsRenderingScope(
     config = MaterialSymbolFontsConfig(
         weight = FontWeight(500),  // 100 (thin) .. 700 (bold) — stroke thickness
-        grade = 200,                // -25 .. 200   — fine weight trim that doesn't reflow layout
-        opticalSize = 24.sp         // 20 .. 48      — redraws detail for the size it's shown at
+        grade = 200,               // -25 .. 200   — fine weight trim that doesn't reflow layout
+        opticalSize = 24.sp        // 20 .. 48      — redraws detail for the size it's shown at
     )
 ) {
     MaterialSymbol(
