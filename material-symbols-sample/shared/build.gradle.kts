@@ -8,6 +8,7 @@ plugins {
     alias(libs.plugins.android.kotlin.multiplatform.library)
     alias(libs.plugins.compose.multiplatform)
     alias(libs.plugins.compose.compiler)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
@@ -19,12 +20,17 @@ kotlin {
         compilerOptions {
             jvmTarget = JvmTarget.JVM_11
         }
+
+        androidResources {
+            enable = true
+        }
     }
 
     jvm()
 
     wasmJs {
         browser()
+        binaries.executable()
     }
 
     sourceSets {
@@ -37,8 +43,18 @@ kotlin {
             implementation(libs.compose.foundation)
             implementation(libs.compose.material3)
             implementation(libs.compose.ui)
-            implementation(libs.compose.ui)
             implementation(libs.compose.components.resources)
+            implementation(libs.compose.viewmodel)
+            implementation(libs.compose.lifecycle.runtime)
+
+            // Kotlinx Serialization
+            implementation(libs.kotlinx.serialization.json)
         }
     }
+}
+
+compose.resources {
+    publicResClass = false
+    packageOfResClass = "dev.catbit.material_symbols.sample.shared.resources"
+    generateResClass = always
 }
