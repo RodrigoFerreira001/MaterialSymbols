@@ -76,10 +76,6 @@ kotlin {
         browser()
         binaries.executable()
     }
-    js {
-        browser()
-        binaries.executable()
-    }
 
     sourceSets {
         commonMain.dependencies {
@@ -106,8 +102,10 @@ kotlin {
     }
 }
 
-compose.resources {
-    publicResClass = false
-    packageOfResClass = "dev.catbit.material_symbols.resources"
-    generateResClass = always
+compose {
+    resources {
+        publicResClass = true
+        packageOfResClass = "dev.catbit.material_symbols.resources"
+        generateResClass = always
+    }
 }
